@@ -25,7 +25,9 @@ const verifyJWT = (req, res, next) => {
         // verify a token symmetric
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
             if (err) {
-                return res.status(403).send({ message: "Forbidden Access" });
+                return res
+                    .status(403)
+                    .send({ success: false, message: "Forbidden Access" });
             }
             // console.log("decoded", decoded);
             req.decoded = decoded;
@@ -75,12 +77,41 @@ async function run() {
             res.send({ result, accessToken });
         });
 
+        //Admin verification Middleware to prevent unauthorized actions
+        //Note: Note it is dependent on verifyJWT. so place it after verifyJWT
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded?.email;
+            const user = await userCollection.findOne({ email: requester });
+            if (user.role === "admin") {
+                // console.log("admin verified");
+                next();
+            } else {
+                return res
+                    .status(403)
+                    .send({ success: false, message: "Forbidden Access" });
+            }
+        };
+
+        //Updating user role
+        app.put("/users/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params?.email;
+            const role = req.body?.role;
+            // console.log(role);
+            const filter = { email };
+            const updateDoc = {
+                $set: {
+                    role,
+                },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
         //Getting all registered users
         app.get("/users", verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
-        
     } finally {
         //   await client.close();
     }
