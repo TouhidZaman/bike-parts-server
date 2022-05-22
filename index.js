@@ -107,6 +107,14 @@ async function run() {
             res.send(result);
         });
 
+        //Admin checker api
+        app.get("/admin/:email", verifyJWT, async (req, res) => {
+            const email = req.params?.email;
+            const user = await userCollection.findOne({ email });
+            const isAdmin = user?.role === "admin";
+            res.send({ admin: isAdmin });
+        });
+
         //Getting all registered users
         app.get("/users", verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
