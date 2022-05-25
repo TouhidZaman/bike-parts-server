@@ -50,6 +50,7 @@ async function run() {
         await client.connect();
         const userCollection = client.db("bikePartsDB").collection("users");
         const productCollection = client.db("bikePartsDB").collection("products");
+        const reviewCollection = client.db("bikePartsDB").collection("reviews");
 
         //Creating user and getting token for user
         app.put("/users/:email", async (req, res) => {
@@ -131,6 +132,32 @@ async function run() {
             const product = req.body;
             const result = await productCollection.insertOne(product);
             res.send(result);
+        });
+
+        ///////////////////////////////
+        ///// Review APIs ///////////
+        ///////////////////////////////
+
+        //Inserting a Review
+        app.post("/reviews/:addedBy", verifyJWT, async (req, res) => {
+            const email = req.params?.addedBy;
+            const decodedEmail = req.decoded?.email;
+            if (email === decodedEmail) {
+                const review = req.body;
+                const result = await reviewCollection.insertOne(review);
+                return res.send(result);
+            } else {
+                res.status(403).send({
+                    success: false,
+                    message: "Forbidden Access",
+                });
+            }
+        });
+
+        //Getting all reviews
+        app.get("/reviews", async (req, res) => {
+            const reviews = await reviewCollection.find().toArray();
+            res.send(reviews);
         });
     } finally {
         //   await client.close();
