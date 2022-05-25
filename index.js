@@ -50,7 +50,12 @@ async function run() {
         await client.connect();
         const userCollection = client.db("bikePartsDB").collection("users");
         const productCollection = client.db("bikePartsDB").collection("products");
+        const orderCollection = client.db("bikePartsDB").collection("orders");
         const reviewCollection = client.db("bikePartsDB").collection("reviews");
+
+        ///////////////////////////////
+        //////// Users APIs ///////////
+        ///////////////////////////////
 
         //Creating user and getting token for user
         app.put("/users/:email", async (req, res) => {
@@ -194,6 +199,98 @@ async function run() {
                 res.status(400).send({
                     success: false,
                     message: "Invalid Product Id",
+                });
+            }
+        });
+
+        ///////////////////////////////
+        /////// Orders APIs ///////////
+        ///////////////////////////////
+
+        //Inserting a order
+        app.post("/orders", verifyJWT, async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        //Getting all orders
+        app.get("/orders", verifyJWT, verifyAdmin, async (req, res) => {
+            let orders = [];
+            if (req.query?.limitTo) {
+                const limit = parseInt(req.query?.limitTo);
+                orders = await orderCollection.find().limit(limit).toArray();
+            } else {
+                orders = await orderCollection.find().toArray();
+            }
+            res.send(orders);
+        });
+
+        //Getting my orders
+        app.get("/orders/:email", verifyJWT, async (req, res) => {
+            const email = req.params?.email;
+            const decodedEmail = req.decoded?.email;
+
+            if (email === decodedEmail) {
+                const filter = { addedBy: email };
+                const orders = await orderCollection.find(filter).toArray();
+                return res.send(orders);
+            } else {
+                res.status(403).send({
+                    success: false,
+                    message: "Forbidden Access",
+                });
+            }
+        });
+
+        //Getting a specific order using order Id
+        app.get("/orders/:id", verifyJWT, async (req, res) => {
+            const orderId = req.params?.id;
+            try {
+                const query = { _id: ObjectId(orderId) };
+                const order = await orderCollection.findOne(query);
+                res.send(order);
+            } catch (error) {
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Order Id",
+                });
+            }
+        });
+
+        //Updating a order
+        app.put("/orders/:id", verifyJWT, async (req, res) => {
+            const orderId = req.params?.id;
+            const updatedOrder = req.body;
+            try {
+                const filter = { _id: ObjectId(orderId) };
+
+                const updateDoc = {
+                    $set: {
+                        ...updatedOrder,
+                    },
+                };
+                const result = await orderCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } catch (error) {
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Order Id",
+                });
+            }
+        });
+
+        //Deleting a Order
+        app.delete("/orders/:id", verifyJWT, async (req, res) => {
+            const orderId = req.params?.id;
+            try {
+                const filter = { _id: ObjectId(orderId) };
+                const result = await orderCollection.deleteOne(filter);
+                res.send(result);
+            } catch (error) {
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Order Id",
                 });
             }
         });
