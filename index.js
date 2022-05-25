@@ -146,6 +146,21 @@ async function run() {
             res.send(products);
         });
 
+        //Getting a specific product using product Id
+        app.get("/products/:id", async (req, res) => {
+            const productId = req.params?.id;
+            try {
+                const query = { _id: ObjectId(productId) };
+                const product = await productCollection.findOne(query);
+                res.send(product);
+            } catch (error) {
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Product Id",
+                });
+            }
+        });
+
         //Updating a product
         app.put("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
             const productId = req.params?.id;
@@ -161,7 +176,10 @@ async function run() {
                 const result = await productCollection.updateOne(filter, updateDoc);
                 res.send(result);
             } catch (error) {
-                res.status(400).send({ success: false, message: "bad request" });
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Product Id",
+                });
             }
         });
 
@@ -173,7 +191,10 @@ async function run() {
                 const result = await productCollection.deleteOne(filter);
                 res.send(result);
             } catch (error) {
-                res.status(400).send({ success: false, message: "bad request" });
+                res.status(400).send({
+                    success: false,
+                    message: "Invalid Product Id",
+                });
             }
         });
 
