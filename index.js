@@ -49,6 +49,7 @@ async function run() {
     try {
         await client.connect();
         const userCollection = client.db("bikePartsDB").collection("users");
+        const productCollection = client.db("bikePartsDB").collection("products");
 
         //Creating user and getting token for user
         app.put("/users/:email", async (req, res) => {
@@ -119,6 +120,17 @@ async function run() {
         app.get("/users", verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
+        });
+
+        ///////////////////////////////
+        ///// Products APIs ///////////
+        ///////////////////////////////
+
+        //Inserting a Product
+        app.post("/products", verifyJWT, verifyAdmin, async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
         });
     } finally {
         //   await client.close();
