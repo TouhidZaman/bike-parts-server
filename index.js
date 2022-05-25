@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const cors = require("cors");
@@ -132,6 +132,49 @@ async function run() {
             const product = req.body;
             const result = await productCollection.insertOne(product);
             res.send(result);
+        });
+
+        //Getting all products
+        app.get("/products", async (req, res) => {
+            let products = [];
+            if (req.query?.limitTo) {
+                const limit = parseInt(req.query?.limitTo);
+                products = await productCollection.find().limit(limit).toArray();
+            } else {
+                products = await productCollection.find().toArray();
+            }
+            res.send(products);
+        });
+
+        //Updating a product
+        app.put("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const productId = req.params?.id;
+            const updatedProduct = req.body;
+            try {
+                const filter = { _id: ObjectId(productId) };
+
+                const updateDoc = {
+                    $set: {
+                        ...updatedProduct,
+                    },
+                };
+                const result = await productCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } catch (error) {
+                res.status(400).send({ success: false, message: "bad request" });
+            }
+        });
+
+        //Deleting a product
+        app.delete("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const productId = req.params?.id;
+            try {
+                const filter = { _id: ObjectId(productId) };
+                const result = await productCollection.deleteOne(filter);
+                res.send(result);
+            } catch (error) {
+                res.status(400).send({ success: false, message: "bad request" });
+            }
         });
 
         ///////////////////////////////
