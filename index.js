@@ -53,12 +53,8 @@ async function run() {
         const orderCollection = client.db("bikePartsDB").collection("orders");
         const reviewCollection = client.db("bikePartsDB").collection("reviews");
 
-        ///////////////////////////////
-        //////// Users APIs ///////////
-        ///////////////////////////////
-
         //Creating user and getting token for user
-        app.put("/users/:email", async (req, res) => {
+        app.put("/login/:email", async (req, res) => {
             const email = req.params?.email;
             const user = req.body;
 
@@ -99,6 +95,24 @@ async function run() {
             }
         };
 
+        ///////////////////////////////
+        //////// Users APIs ///////////
+        ///////////////////////////////
+
+        //Updating user profile
+        app.put("/users/:email", verifyJWT, async (req, res) => {
+            const email = req.params?.email;
+            const updatedUser = req.body;
+
+            const filter = { email };
+            const updateDoc = {
+                $set: updatedUser,
+            };
+
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
         //Updating user role
         app.put("/users/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params?.email;
@@ -123,9 +137,21 @@ async function run() {
         });
 
         //Getting all registered users
-        app.get("/users", verifyJWT, async (req, res) => {
+        app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
+        });
+
+        //Getting a user based on email
+        app.get("/users/:email", async (req, res) => {
+            const email = req.params?.email;
+            const filter = { email };
+            const user = await userCollection.findOne(filter);
+            if (user) {
+                res.send(user);
+            } else {
+                res.send({ success: false, message: "user not found" });
+            }
         });
 
         ///////////////////////////////
@@ -226,7 +252,7 @@ async function run() {
             res.send(orders);
         });
 
-        //Getting my orders
+        //Getting orders based on user
         app.get("/orders/:email", verifyJWT, async (req, res) => {
             const email = req.params?.email;
             const decodedEmail = req.decoded?.email;
