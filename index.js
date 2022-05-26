@@ -103,7 +103,6 @@ async function run() {
         app.put("/users/:email", verifyJWT, async (req, res) => {
             const email = req.params?.email;
             const updatedUser = req.body;
-
             const filter = { email };
             const updateDoc = {
                 $set: updatedUser,
@@ -143,14 +142,16 @@ async function run() {
         });
 
         //Getting a user based on email
-        app.get("/users/:email", async (req, res) => {
+        app.get("/users/:email", verifyJWT, async (req, res) => {
             const email = req.params?.email;
             const filter = { email };
             const user = await userCollection.findOne(filter);
             if (user) {
-                res.send(user);
+                return res.send(user);
             } else {
-                res.send({ success: false, message: "user not found" });
+                return res
+                    .status(400)
+                    .send({ success: false, message: "user not found" });
             }
         });
 
