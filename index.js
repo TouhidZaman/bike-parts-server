@@ -254,7 +254,7 @@ async function run() {
         });
 
         //Getting orders based on user
-        app.get("/orders/:email", verifyJWT, async (req, res) => {
+        app.get("/my-orders/:email", verifyJWT, async (req, res) => {
             const email = req.params?.email;
             const decodedEmail = req.decoded?.email;
             if (email === decodedEmail) {
