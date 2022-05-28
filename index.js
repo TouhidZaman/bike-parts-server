@@ -257,7 +257,6 @@ async function run() {
         app.get("/orders/:email", verifyJWT, async (req, res) => {
             const email = req.params?.email;
             const decodedEmail = req.decoded?.email;
-
             if (email === decodedEmail) {
                 const filter = { addedBy: email };
                 const orders = await orderCollection.find(filter).toArray();
@@ -327,19 +326,10 @@ async function run() {
         ///////////////////////////////
 
         //Inserting a Review
-        app.post("/reviews/:addedBy", verifyJWT, async (req, res) => {
-            const email = req.params?.addedBy;
-            const decodedEmail = req.decoded?.email;
-            if (email === decodedEmail) {
-                const review = req.body;
-                const result = await reviewCollection.insertOne(review);
-                return res.send(result);
-            } else {
-                res.status(403).send({
-                    success: false,
-                    message: "Forbidden Access",
-                });
-            }
+        app.post("/reviews", verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
         });
 
         //Getting all reviews
