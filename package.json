@@ -1,15 +1,20 @@
 {
   "name": "motor-bike-parts-manufacturer-server",
+  "author": {
+    "name": "Muhammad Touhiduzzaman",
+    "email": "touhid4bd@gmail.com",
+    "url": "https://github.com/TouhidZaman"
+  },
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "build": "node index.js",
     "start-dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",

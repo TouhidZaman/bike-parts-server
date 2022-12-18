@@ -345,11 +345,10 @@ run().catch(console.dir);
 
 //API Endpoints
 app.get("/", (req, res) => {
-    res.send({
-        success: true,
-        message: "hello from bike-parts-manufacturer server",
-        developedBy: "Muhammad Touhiduzzaman",
-    });
+    res.send({status: true, data: {
+        message: "welcome to bike parts manufacturer server",
+        author: "Muhammad Touhiduzzaman"
+    }});
 });
 
 //Listening to port
